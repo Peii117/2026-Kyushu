@@ -23,7 +23,6 @@
             --bg-body: #FFF1F2; /* Rose-50 (極淡粉) */
         }
         
-        /* 字體調整為 16px，保持清晰但不過大 */
         body { 
             font-size: 16px; 
             background-color: var(--bg-body); 
@@ -31,23 +30,33 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
         
-        /* 動畫效果 */
         .sidebar-enter-active, .sidebar-leave-active { transition: transform 0.3s ease; }
         .sidebar-enter-from, .sidebar-leave-to { transform: translateX(-100%); }
         .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
         .fade-enter-from, .fade-leave-to { opacity: 0; }
-        
-        /* 隱藏捲軸 */
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* 瀏海屏適配 */
         .pt-safe { padding-top: env(safe-area-inset-top); }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
         
-        /* 自定義漸層背景 */
+        /* 特效背景 */
         .bg-sakura { background: linear-gradient(135deg, #FBCFE8 0%, #F472B6 100%); }
-        .bg-sky { background: linear-gradient(135deg, #BAE6FD 0%, #38BDF8 100%); }
+        
+        /* 登機證鋸齒邊緣特效 */
+        .ticket-jagged {
+            position: relative;
+            background: white;
+        }
+        .ticket-jagged::after {
+            content: "";
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 100%;
+            height: 12px;
+            background: radial-gradient(circle, transparent 6px, white 6px);
+            background-size: 18px 18px;
+            background-position: -9px 0;
+        }
     </style>
 </head>
 <body class="text-gray-800 selection:bg-pink-200">
@@ -116,7 +125,8 @@
     <main class="p-4 space-y-6 pb-24">
         
         <section v-if="activeTab === 'info'" class="space-y-4 animate-fade-in">
-            <div class="bg-sakura rounded-[2rem] p-6 text-white shadow-xl relative overflow-hidden transform transition-all hover:scale-[1.01]">
+            
+            <div class="bg-sakura rounded-[2rem] p-6 text-white shadow-xl relative overflow-hidden transform transition-all">
                 <div class="relative z-10 flex justify-between items-center">
                     <div>
                         <p class="text-xs font-bold opacity-80 uppercase tracking-widest mb-1"><i class="fas fa-map-marker-alt mr-1"></i>Fukuoka Live</p>
@@ -130,6 +140,49 @@
                 <i class="fas fa-fan absolute -bottom-4 -left-4 text-8xl opacity-20 text-white animate-spin-slow" style="animation-duration: 20s;"></i>
             </div>
 
+            <div class="bg-white rounded-2xl shadow-md overflow-hidden relative border border-gray-100">
+                <div class="bg-sky-500 p-3 flex justify-between items-center text-white">
+                    <div class="text-xs font-bold uppercase tracking-widest"><i class="fas fa-plane-departure mr-2"></i>Boarding Pass</div>
+                    <div class="text-xs font-black opacity-80">2026/04/09</div>
+                </div>
+                <div class="p-5 relative ticket-jagged">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="text-center">
+                            <div class="text-3xl font-black text-gray-800">TPE</div>
+                            <div class="text-[10px] text-gray-400 font-bold bg-gray-100 px-1 rounded">台北第一航廈</div>
+                        </div>
+                        <div class="flex-1 px-4 text-center">
+                            <div class="text-sky-500 text-xs font-bold mb-1">Tigerair IT246</div>
+                            <div class="border-t-2 border-dashed border-sky-200 relative">
+                                <i class="fas fa-plane absolute -top-2 left-1/2 transform -translate-x-1/2 text-sky-400 bg-white px-1 text-sm"></i>
+                            </div>
+                            <div class="text-[10px] text-gray-400 font-bold mt-1">3h 25m</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-black text-gray-800">HSG</div>
+                            <div class="text-[10px] text-gray-400 font-bold bg-gray-100 px-1 rounded">佐賀機場</div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-end border-t border-dashed border-gray-200 pt-3">
+                        <div>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold">Departure</p>
+                            <p class="text-xl font-black text-gray-800">07:10</p>
+                        </div>
+                         <div>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold text-right">Arrival</p>
+                            <p class="text-xl font-black text-gray-800">10:35</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-3 border-t border-gray-200 flex justify-between items-center">
+                    <div class="flex items-center text-xs text-gray-500 font-bold">
+                        <span class="bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded mr-2 text-[10px]">回程</span>
+                        04/15 預計福岡/佐賀返台
+                    </div>
+                    <i class="fas fa-plane-arrival text-gray-300"></i>
+                </div>
+            </div>
+
             <div class="bg-white border border-pink-100 rounded-[1.5rem] p-5 shadow-sm flex justify-between items-center relative overflow-hidden group">
                 <div class="z-10">
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">即時匯率 (JPY → TWD)</p>
@@ -141,7 +194,7 @@
                         {{ loadingRate ? '更新中...' : '資料來源: Frankfurter API' }}
                     </p>
                 </div>
-                <div class="w-12 h-12 rounded-full bg-sky-50 text-sky-500 flex items-center justify-center font-black text-xl z-10 group-hover:scale-110 transition-transform">
+                <div class="w-12 h-12 rounded-full bg-sky-50 text-sky-500 flex items-center justify-center font-black text-xl z-10">
                     <i class="fas fa-yen-sign"></i>
                 </div>
                 <div class="absolute right-0 top-0 h-full w-1.5 bg-sky-400"></div>
@@ -318,7 +371,7 @@
 
 <script>
     // ==========================================
-    // 1. Firebase Configuration (已填入您的設定)
+    // 1. Firebase Configuration
     // ==========================================
     const firebaseConfig = {
         apiKey: "AIzaSyCGprnuwAqCKwt1GoCrbAevGdg_hZlZFdg",
@@ -432,7 +485,6 @@
                 fetchWeather();
                 fetchRate();
                 
-                // 連線到 "trips/kyushu2026" 路徑
                 const tripRef = db.ref('trips/kyushu2026');
                 
                 tripRef.on('value', (snapshot) => {
@@ -444,9 +496,10 @@
                         if (data.food) foodList.value = data.food;
                         if (data.expenses) expenses.value = data.expenses;
                     } else {
-                        // 第一次執行，寫入 PPTX 中的預設行程
+                        // 寫入預設資料 (含班機)
                         const initData = {
                             itinerary: [
+                                { id: 100, dateId: 'day1', time: '07:10', name: 'IT246 起飛', category: '交通', notes: 'TPE 往 佐賀', region: 'Taoyuan' },
                                 { id: 101, dateId: 'day1', time: '11:44', name: '佐賀機場巴士', category: '交通', notes: '往佐賀站', region: 'Saga' },
                                 { id: 103, dateId: 'day1', time: '12:56', name: '西九州新幹線', category: '交通', notes: '往長崎', region: 'Nagasaki' },
                                 { id: 107, dateId: 'day1', time: '19:30', name: '稻佐山夜景', category: '景點', notes: '纜車', region: 'Nagasaki' },
@@ -470,7 +523,6 @@
 
             // Sync Helper
             const updateRemote = (key, data) => {
-                // 使用 JSON 轉換移除 Proxy，確保 Firebase 接受純資料
                 db.ref(`trips/kyushu2026/${key}`).set(JSON.parse(JSON.stringify(data)));
             };
 
@@ -483,9 +535,7 @@
             const saveNewItem = () => {
                 if(!newItem.value.name) return;
                 const list = [...itineraryData.value, { ...newItem.value, id: Date.now(), dateId: activeDateId.value, notes: '' }];
-                // 先更新畫面，感覺比較快
                 itineraryData.value = list; 
-                // 再上傳
                 updateRemote('itinerary', list);
                 showAddModal.value = false; newItem.value.name = '';
             };
