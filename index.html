@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>2026 九州春遊</title>
+    <title>2026 九州之旅</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -16,451 +16,341 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <style>
-        :root { 
-            --color-primary: #EC4899; 
-            --bg-body: #FFF1F2;
-        }
+        /* 皇室藍配色 (還原目標網站風格) */
+        :root { --color-blue: #2563EB; --color-dark: #1E3A8A; }
+        .text-royal-blue { color: var(--color-blue); }
+        .bg-royal-blue { background-color: var(--color-blue); }
         
         body { 
-            font-size: 16px; 
-            background-color: var(--bg-body); 
-            -webkit-tap-highlight-color: transparent;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #F3F4F6; /* Gray-100 */
+            -webkit-tap-highlight-color: transparent;
         }
+        
+        /* 隱藏捲軸 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* 動畫 */
+        .scale-in-center { animation: scale-in-center 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+        @keyframes scale-in-center { 0% { transform: scale(0.98); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        
+        .sidebar-enter-active, .sidebar-leave-active { transition: transform 0.3s ease; }
+        .sidebar-enter-from, .sidebar-leave-to { transform: translateX(-100%); }
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; }
         
         .pt-safe { padding-top: env(safe-area-inset-top); }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-        
-        /* === 動態天氣特效 CSS === */
-        
-        /* 1. 晴天 (Sunny) */
-        .weather-bg-clear {
-            background: linear-gradient(to bottom, #4facfe 0%, #00f2fe 100%);
-        }
-        .sun {
-            position: absolute;
-            top: -50px;
-            right: -50px;
-            width: 150px;
-            height: 150px;
-            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.1) 60%, transparent 100%);
-            border-radius: 50%;
-            animation: sun-pulse 10s infinite alternate;
-        }
-        @keyframes sun-pulse { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.2); opacity: 1; } }
 
-        /* 2. 多雲 (Cloudy) */
-        .weather-bg-cloudy {
-            background: linear-gradient(to bottom, #89f7fe 0%, #66a6ff 100%);
-        }
-        .cloud-shape {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 50px;
-            animation: move-cloud 20s linear infinite;
-        }
-        .cloud-1 { top: 20px; left: -20%; width: 100px; height: 40px; animation-duration: 25s; }
-        .cloud-2 { top: 60px; left: -10%; width: 80px; height: 30px; animation-delay: 5s; opacity: 0.4; }
-        @keyframes move-cloud { 0% { transform: translateX(0); } 100% { transform: translateX(500px); } }
-
-        /* 3. 下雨 (Rainy) */
-        .weather-bg-rain {
-            background: linear-gradient(to bottom, #203a43, #2c5364);
-        }
-        .rain-drop {
-            position: absolute;
-            background-color: rgba(255, 255, 255, 0.3);
-            width: 2px;
-            height: 15px;
-            top: -20px;
-            animation: rain-fall 1s linear infinite;
-        }
-        @keyframes rain-fall { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(200px); opacity: 0; } }
-
-        /* 4. 晚上 (Night) */
-        .weather-bg-night {
-            background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
-        }
-        .star {
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-            animation: twinkle 3s infinite ease-in-out;
-        }
-        @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-
-        /* 通用卡片設定 */
-        .weather-card-container {
-            position: relative;
-            overflow: hidden;
-            transition: all 1s ease;
-        }
-        
-        .ticket-jagged {
-            position: relative;
-            background: white;
-        }
+        /* 鋸齒狀邊緣 (票券用) */
+        .ticket-jagged { position: relative; background: white; }
         .ticket-jagged::after {
-            content: "";
-            position: absolute;
-            bottom: -6px;
-            left: 0;
-            width: 100%;
-            height: 12px;
+            content: ""; position: absolute; bottom: -6px; left: 0; width: 100%; height: 12px;
             background: radial-gradient(circle, transparent 6px, white 6px);
-            background-size: 18px 18px;
-            background-position: -9px 0;
+            background-size: 18px 18px; background-position: -9px 0;
         }
     </style>
 </head>
-<body class="text-gray-800 selection:bg-pink-200">
+<body class="text-gray-900 selection:bg-blue-100">
 
-<div id="app" class="max-w-lg mx-auto min-h-screen bg-white shadow-2xl relative pb-safe">
+<div id="app" class="max-w-md mx-auto min-h-screen bg-white shadow-2xl relative pb-safe">
 
-    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-pink-100 p-4 pt-safe flex items-center justify-between shadow-sm">
-        <div class="flex items-center">
-            <button @click="isMenuOpen = true" class="mr-3 text-pink-500 p-2 rounded-lg active:bg-pink-50 transition-colors">
-                <i class="fas fa-bars text-xl"></i>
+    <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-100 p-4 pt-safe">
+        <div class="flex justify-between items-center mb-2">
+            <button @click="isMenuOpen = true" class="text-gray-600 text-xl p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <i class="fas fa-bars"></i>
             </button>
-            <h1 class="text-lg font-black text-gray-800 tracking-tight flex items-center">
-                <i class="fas fa-sakura text-pink-400 mr-2 animate-pulse"></i>
-                {{ activeMenuName }}
-            </h1>
-        </div>
-        
-        <div class="flex items-center space-x-2">
-             <div class="flex items-center text-[10px] font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-full">
-                <div :class="dbConnected ? 'bg-green-400' : 'bg-red-400'" class="w-2 h-2 rounded-full mr-1.5 animate-pulse"></div>
-                {{ dbConnected ? '已連線' : '連線中...' }}
+            <div class="text-center">
+                <h1 class="text-xl font-black text-gray-800 tracking-tight">{{ activeMenuName }}</h1>
+                <div class="flex items-center justify-center space-x-1 mt-0.5">
+                    <div :class="dbConnected ? 'bg-green-500' : 'bg-red-400'" class="w-1.5 h-1.5 rounded-full animate-pulse"></div>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ dbConnected ? 'SYNCED' : 'CONNECTING' }}</span>
+                </div>
             </div>
             <button @click="isEditMode = !isEditMode" 
-                    :class="isEditMode ? 'bg-pink-500 text-white shadow-pink-200' : 'bg-sky-100 text-sky-600'"
-                    class="text-xs px-3 py-1.5 rounded-full font-bold transition-all shadow-md active:scale-95">
+                    :class="isEditMode ? 'bg-blue-600 text-white shadow-blue-200' : 'bg-gray-100 text-gray-600'"
+                    class="text-xs px-4 py-2 rounded-full font-bold transition-all shadow-md active:scale-95">
                 {{ isEditMode ? '完成' : '編輯' }}
             </button>
         </div>
+
+        <nav v-if="activeTab === 'itinerary'" class="mt-2 scale-in-center">
+            <div class="flex items-center space-x-2 overflow-x-auto no-scrollbar w-full pb-1">
+                <button v-for="(date, index) in tripDates" :key="date.id"
+                        @click="activeDateId = date.id"
+                        :class="activeDateId === date.id ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'bg-gray-50 text-gray-400 border border-gray-100'"
+                        class="flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all min-w-[75px] text-center">
+                    <div class="text-[9px] uppercase opacity-70 mb-0.5">Day {{ index + 1 }}</div>
+                    <div class="tracking-tighter">{{ formatDate(date.fullDate) }}</div>
+                </button>
+                <button v-if="isEditMode" @click="addDay" class="flex-shrink-0 w-10 h-10 border-2 border-dashed border-gray-200 rounded-xl text-gray-400">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </nav>
     </header>
 
-    <transition name="fade"><div v-if="isMenuOpen" @click="isMenuOpen = false" class="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"></div></transition>
+    <transition name="fade"><div v-if="isMenuOpen" @click="isMenuOpen = false" class="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"></div></transition>
     <transition name="sidebar">
-        <aside v-if="isMenuOpen" class="fixed top-0 left-0 h-full w-64 bg-white z-50 shadow-2xl p-6 flex flex-col pt-safe">
-            <div class="flex justify-between items-center mb-8">
-                <div>
-                    <h2 class="text-xl font-black text-pink-600">2026 Kyushu</h2>
-                    <p class="text-xs text-gray-400 font-bold mt-1">Fukuoka & Nagasaki</p>
-                </div>
-                <button @click="isMenuOpen = false" class="text-gray-300 hover:text-gray-500"><i class="fas fa-times text-xl"></i></button>
+        <aside v-if="isMenuOpen" class="fixed top-0 left-0 h-full w-64 bg-white z-50 shadow-2xl p-6 flex flex-col justify-between pt-safe">
+            <div>
+                <h2 class="text-2xl font-black text-gray-800 mb-8 px-2 border-l-4 border-blue-600 pl-4">2026 Kyushu</h2>
+                <ul class="space-y-2">
+                    <li v-for="menu in menus" :key="menu.id" 
+                        @click="switchTab(menu.id)"
+                        :class="activeTab === menu.id ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'"
+                        class="flex items-center space-x-4 p-4 rounded-2xl cursor-pointer transition-all font-bold">
+                        <div class="w-8 text-center"><i :class="menu.icon" class="text-lg"></i></div>
+                        <span>{{ menu.name }}</span>
+                    </li>
+                </ul>
             </div>
-            <nav class="space-y-2 flex-1">
-                <button v-for="menu in menus" :key="menu.id" @click="switchTab(menu.id)"
-                        :class="activeTab === menu.id ? 'bg-pink-50 text-pink-600' : 'text-gray-600 hover:bg-gray-50'"
-                        class="w-full flex items-center p-3 rounded-xl transition-all font-bold text-base">
-                    <i :class="menu.icon" class="w-8 text-center text-lg"></i>{{ menu.name }}
-                </button>
-            </nav>
-            <div class="text-center text-[10px] text-gray-300 font-bold border-t border-gray-100 pt-4">
-                Designed for 2026 Trip
-            </div>
+            <div class="text-xs text-gray-300 text-center font-bold pb-8">v2026.Kyushu.Final</div>
         </aside>
     </transition>
 
-    <nav v-if="activeTab === 'itinerary'" class="sticky top-[60px] z-20 bg-white/95 backdrop-blur px-2 py-2 shadow-sm border-b border-gray-50">
-        <div class="flex items-center space-x-2 overflow-x-auto no-scrollbar w-full pb-1">
-            <button v-for="(date, index) in tripDates" :key="date.id"
-                    @click="activeDateId = date.id"
-                    :class="activeDateId === date.id ? 'bg-sky-500 text-white shadow-lg shadow-sky-200 scale-105' : 'bg-gray-50 text-gray-400 border border-gray-100'"
-                    class="flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all min-w-[70px] text-center">
-                <div class="text-[9px] uppercase opacity-90 mb-0.5">Day {{ index + 1 }}</div>
-                <div>{{ formatDate(date.fullDate) }}</div>
-            </button>
-        </div>
-    </nav>
-
-    <main class="p-4 space-y-6 pb-24">
+    <main class="p-4 pb-24">
         
-        <section v-if="activeTab === 'info'" class="space-y-4 animate-fade-in">
+        <section v-if="activeTab === 'info'" class="scale-in-center space-y-6">
             
-            <div :class="weatherClass" class="weather-card-container rounded-[2rem] p-6 text-white shadow-xl relative min-h-[160px] flex flex-col justify-between group">
-                
-                <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-[2rem]">
-                    <div v-if="weatherState === 'clear'" class="sun"></div>
-                    <div v-if="weatherState === 'cloudy'">
-                        <div class="cloud-shape cloud-1"></div>
-                        <div class="cloud-shape cloud-2"></div>
-                    </div>
-                    <div v-if="weatherState === 'rain'" id="rain-container"></div>
-                    <div v-if="weatherState === 'night'">
-                        <div class="star" style="top:20%; left:30%; width:2px; height:2px;"></div>
-                        <div class="star" style="top:50%; left:80%; width:3px; height:3px; animation-delay:1s;"></div>
-                        <div class="star" style="top:10%; left:70%; width:2px; height:2px; animation-delay:2s;"></div>
-                    </div>
-                </div>
-
-                <div class="relative z-10 flex justify-between items-start">
+            <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-[2rem] p-6 text-white shadow-lg relative overflow-hidden">
+                <div class="relative z-10 flex justify-between items-center">
                     <div>
-                        <div class="flex items-center space-x-2 mb-1">
-                            <i class="fas fa-location-arrow text-xs opacity-80"></i>
-                            <p class="text-xs font-bold uppercase tracking-widest text-shadow">Fukuoka</p>
-                        </div>
-                        <h3 class="text-6xl font-black tracking-tighter drop-shadow-md">{{ weather.temp }}<span class="text-3xl align-top">°</span></h3>
-                        <p class="text-sm font-bold mt-1 opacity-90 drop-shadow-sm">{{ weather.desc }}</p>
-                        <p class="text-[10px] opacity-70 mt-1">H:{{weather.max}}° L:{{weather.min}}°</p>
+                        <p class="text-xs font-bold opacity-80 uppercase tracking-widest mb-1">Fukuoka / Nagasaki</p>
+                        <h3 class="text-4xl font-black tracking-tighter">{{ weather.temp }}°C</h3>
+                        <p class="text-sm font-medium opacity-90">{{ weather.desc }}</p>
                     </div>
                     <div class="text-right">
-                         <i :class="weather.icon" class="text-5xl drop-shadow-md mb-2 block filter brightness-110 opacity-90"></i>
-                    </div>
-                </div>
-
-                <div class="relative z-10 mt-4 pt-4 border-t border-white/20 flex justify-between items-end">
-                    <div class="text-[10px] font-bold opacity-70">
-                        {{ weather.isDay ? '日間' : '夜間' }}即時氣象
-                    </div>
-                    <a href="https://www.jma.go.jp/bosai/forecast/#area_type=offices&area_code=400000" target="_blank" 
-                       class="bg-white/20 hover:bg-white/30 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold transition-all flex items-center">
-                        <img src="https://www.jma.go.jp/jma/kishou/info/logo/logo_jma.png" class="w-3 h-3 mr-1.5 bg-white rounded-full p-0.5">
-                        日本氣象廳 JMA
-                    </a>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-md overflow-hidden relative border border-gray-100">
-                <div class="bg-sky-500 p-3 flex justify-between items-center text-white">
-                    <div class="text-xs font-bold uppercase tracking-widest"><i class="fas fa-plane mr-2"></i>Flight Ticket</div>
-                    <div class="text-xs font-black opacity-80">2026/04/09-15</div>
-                </div>
-                
-                <div class="p-5 relative ticket-jagged">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="text-[10px] bg-sky-100 text-sky-600 px-2 py-0.5 rounded font-bold">OUTBOUND 去程</span>
-                        <span class="text-[10px] text-gray-400 font-bold">04/09 (四)</span>
-                    </div>
-                    <div class="flex justify-between items-center mb-4 pb-4 border-b border-dashed border-gray-200">
-                        <div class="text-center">
-                            <div class="text-2xl font-black text-gray-800">TPE</div>
-                            <div class="text-[10px] text-gray-400 font-bold">T1 07:10</div>
-                        </div>
-                        <div class="flex-1 px-2 text-center">
-                            <div class="text-sky-500 text-[10px] font-bold mb-1">IT 246</div>
-                            <div class="border-t-2 border-dotted border-sky-300 relative w-full">
-                                <i class="fas fa-plane absolute -top-2 left-1/2 transform -translate-x-1/2 text-sky-400 bg-white px-1 text-xs"></i>
-                            </div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-2xl font-black text-gray-800">HSG</div>
-                            <div class="text-[10px] text-gray-400 font-bold">10:35</div>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="text-[10px] bg-pink-100 text-pink-500 px-2 py-0.5 rounded font-bold">INBOUND 回程</span>
-                        <span class="text-[10px] text-gray-400 font-bold">04/15 (三)</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <div class="text-center">
-                            <div class="text-2xl font-black text-gray-800">FUK</div>
-                            <div class="text-[10px] text-gray-400 font-bold">T1 11:00</div>
-                        </div>
-                        <div class="flex-1 px-2 text-center">
-                            <div class="text-pink-500 text-[10px] font-bold mb-1">CI 0111</div>
-                            <div class="border-t-2 border-dotted border-pink-300 relative w-full">
-                                <i class="fas fa-plane absolute -top-2 left-1/2 transform -translate-x-1/2 text-pink-400 bg-white px-1 text-xs" style="transform: translate(-50%, 0) rotate(180deg);"></i>
-                            </div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-2xl font-black text-gray-800">TPE</div>
-                            <div class="text-[10px] text-gray-400 font-bold">T2 12:30</div>
-                        </div>
+                        <i :class="weather.icon" class="text-5xl mb-2 block filter drop-shadow-md"></i>
+                        <span class="text-[10px] bg-white/20 px-2 py-1 rounded-full">濕度: --%</span>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white border border-pink-100 rounded-[1.5rem] p-5 shadow-sm flex justify-between items-center relative overflow-hidden group">
-                <div class="z-10">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">即時匯率 (JPY → TWD)</p>
-                    <p class="font-black text-gray-800 text-3xl tracking-tight">
-                        <span class="text-sm text-gray-400 mr-1 font-bold">¥1 ≈</span>{{ exchangeRate }}
-                    </p>
-                    <p class="text-[10px] text-sky-500 font-bold mt-1 flex items-center">
-                        <i class="fas fa-sync-alt mr-1" :class="loadingRate ? 'animate-spin' : ''"></i>
-                        {{ loadingRate ? '更新中...' : '資料來源: Frankfurter API' }}
-                    </p>
+            <div class="bg-white border border-gray-100 rounded-[1.5rem] p-4 shadow-sm flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center"><i class="fas fa-exchange-alt"></i></div>
+                    <div>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">即時匯率</p>
+                        <p class="font-black text-gray-800 text-lg">1 JPY ≈ {{ exchangeRate }} TWD</p>
+                    </div>
                 </div>
-                <div class="w-12 h-12 rounded-full bg-sky-50 text-sky-500 flex items-center justify-center font-black text-xl z-10">
-                    <i class="fas fa-yen-sign"></i>
-                </div>
-                <div class="absolute right-0 top-0 h-full w-1.5 bg-sky-400"></div>
+                <button @click="fetchRate" class="text-gray-400 p-2 active:text-blue-500 transition-all"><i class="fas fa-sync-alt" :class="loadingRate ? 'animate-spin' : ''"></i></button>
             </div>
 
             <div class="space-y-3">
-                <h4 class="font-black text-gray-700 text-sm pl-3 border-l-4 border-pink-400 flex items-center">
-                    住宿資訊 <span class="text-[10px] text-gray-400 ml-2 font-normal">點擊地圖導航</span>
-                </h4>
-                <div v-for="h in hotels" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm relative hover:border-pink-200 transition-colors">
-                    <div class="flex justify-between items-start">
-                        <h5 class="font-bold text-gray-800 text-sm leading-relaxed pr-8">{{ h.name }}</h5>
-                        <a :href="'https://www.google.com/maps/search/?api=1&query=' + h.name" target="_blank" class="absolute top-4 right-4 text-pink-500 bg-pink-50 w-8 h-8 flex items-center justify-center rounded-full active:bg-pink-200">
-                            <i class="fas fa-map-marked-alt text-sm"></i>
+                <div class="flex justify-between items-center px-2">
+                    <h4 class="font-black text-gray-800 flex items-center"><i class="fas fa-sticky-note mr-2 text-blue-600"></i>旅行筆記</h4>
+                    <button v-if="isEditMode" @click="addNote" class="text-xs bg-blue-600 text-white px-3 py-1 rounded-full font-bold shadow-md">+ 新增</button>
+                </div>
+                <div v-if="notes.length > 0" class="grid grid-cols-1 gap-3">
+                    <div v-for="note in notes" :key="note.id" class="bg-white border border-gray-100 rounded-[1.5rem] p-5 shadow-sm relative">
+                        <div class="flex justify-between items-start mb-2">
+                            <h5 class="font-black text-gray-800 text-sm uppercase tracking-wider">{{ note.title }}</h5>
+                            <button v-if="isEditMode" @click="deleteNote(note.id)" class="text-red-300 hover:text-red-500"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                        <p class="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">{{ note.content }}</p>
+                    </div>
+                </div>
+                <div v-else class="text-center py-6 bg-gray-50 rounded-[1.5rem] text-gray-300 text-xs font-bold border-2 border-dashed border-gray-100">暫無筆記 (點擊編輯新增)</div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex justify-between items-center px-2">
+                    <h4 class="font-black text-gray-800 flex items-center"><i class="fas fa-plane-departure mr-2 text-blue-600"></i>航班與住宿</h4>
+                </div>
+                
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gray-800 p-3 flex justify-between items-center text-white">
+                        <div class="text-xs font-bold uppercase tracking-widest"><i class="fas fa-ticket-alt mr-2"></i>E-Ticket</div>
+                        <div class="text-[10px] font-mono bg-white/20 px-2 py-0.5 rounded">KYUSHU 2026</div>
+                    </div>
+                    <div class="p-5 relative ticket-jagged">
+                        <div class="flex justify-between items-center mb-4 pb-4 border-b border-dashed border-gray-200">
+                            <div class="text-center">
+                                <div class="text-2xl font-black text-gray-800">TPE</div>
+                                <div class="text-[10px] text-gray-400 font-bold">04/09 07:10</div>
+                            </div>
+                            <div class="flex-1 px-2 text-center">
+                                <i class="fas fa-plane text-blue-500 text-sm"></i>
+                                <div class="text-[9px] text-gray-400 font-bold mt-1">IT 246</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-black text-gray-800">HSG</div>
+                                <div class="text-[10px] text-gray-400 font-bold">10:35</div>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="text-center">
+                                <div class="text-2xl font-black text-gray-800">FUK</div>
+                                <div class="text-[10px] text-gray-400 font-bold">04/15 11:00</div>
+                            </div>
+                            <div class="flex-1 px-2 text-center">
+                                <i class="fas fa-plane text-pink-500 text-sm transform rotate-180"></i>
+                                <div class="text-[9px] text-gray-400 font-bold mt-1">CI 0111</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-black text-gray-800">TPE</div>
+                                <div class="text-[10px] text-gray-400 font-bold">12:30</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="hotels.length > 0" class="space-y-2">
+                    <div v-for="h in hotels" :key="h.id" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex justify-between items-center">
+                        <div class="flex-1 mr-2">
+                            <span class="bg-indigo-50 text-indigo-600 text-[10px] font-black px-2 py-0.5 rounded mr-2">HOTEL</span>
+                            <span class="text-xs font-bold text-gray-700">{{ h.name }}</span>
+                            <p class="text-[10px] text-gray-400 mt-1 ml-1">{{ h.checkIn }} - {{ h.checkOut }}</p>
+                        </div>
+                        <a :href="'https://www.google.com/maps/search/?api=1&query=' + h.name" target="_blank" class="w-8 h-8 flex items-center justify-center bg-gray-50 text-gray-400 rounded-full">
+                            <i class="fas fa-map-marked-alt text-xs"></i>
                         </a>
                     </div>
-                    <p class="text-xs text-gray-500 mt-2 font-bold bg-gray-50 inline-block px-2 py-1 rounded-lg">
-                        <i class="far fa-calendar-check mr-1 text-sky-400"></i>{{ h.checkIn }} - {{ h.checkOut }}
-                    </p>
                 </div>
             </div>
         </section>
 
-        <section v-if="activeTab === 'itinerary'" class="space-y-3">
-            <div v-if="currentItinerary.length > 0" class="space-y-3">
-                <article v-for="item in currentItinerary" :key="item.id" 
-                         :class="getStyles(item.category).border"
-                         class="p-4 bg-white border-l-[5px] rounded-2xl shadow-sm flex justify-between items-start transition-all active:scale-[0.98]">
-                    
-                    <div class="flex-1 pr-2">
-                        <div class="flex items-center space-x-2 mb-1.5">
-                            <span class="text-sm font-black text-gray-700 font-mono bg-gray-100 px-1.5 rounded">{{ item.time }}</span>
-                            <span :class="getStyles(item.category).bg" class="text-[9px] px-2 py-0.5 rounded text-white font-bold tracking-wide shadow-sm">{{ item.category }}</span>
+        <section v-if="activeTab === 'itinerary'" class="scale-in-center">
+            <div v-if="tripDates.length > 0">
+                <div v-if="isEditMode" class="mb-4">
+                    <button @click="openAddModal" class="w-full py-4 border-2 border-dashed border-gray-200 rounded-[2rem] text-gray-400 text-sm font-bold hover:bg-gray-50 transition-all">
+                        <i class="fas fa-plus-circle mr-2 text-blue-600"></i>新增行程到 Day {{ activeDateId.replace('day','') }}
+                    </button>
+                </div>
+                <div v-if="currentItinerary.length > 0" class="space-y-3">
+                    <article v-for="item in currentItinerary" :key="item.id" 
+                             :class="[getStyles(item.category).border, getStyles(item.category).shadow]"
+                             class="p-5 bg-white border border-gray-100 rounded-[1.8rem] border-l-[6px] flex justify-between items-center shadow-sm card-transition">
+                        <div class="flex-1 pr-3">
+                            <div class="flex items-center space-x-3 mb-1">
+                                <span class="text-sm font-black text-gray-800"><i class="far fa-clock mr-1 text-blue-600"></i>{{ item.time }}</span>
+                                <span :class="getStyles(item.category).bg" class="text-[9px] px-2 py-0.5 rounded text-white font-bold tracking-wide">{{ item.category }}</span>
+                            </div>
+                            <h3 class="font-bold text-gray-900 text-lg leading-snug">{{ item.name }}</h3>
+                            <p v-if="item.notes" class="text-xs text-gray-500 mt-1">{{ item.notes }}</p>
                         </div>
-                        <h3 class="font-bold text-gray-800 text-base mb-1">{{ item.name }}</h3>
-                        <p v-if="item.notes" class="text-xs text-gray-400 leading-relaxed whitespace-pre-wrap">{{ item.notes }}</p>
-                    </div>
-
-                    <div class="flex flex-col items-center space-y-2 pt-1">
-                        <a :href="'https://www.google.com/maps/search/?api=1&query=' + item.name + ' ' + (item.region || '九州')" target="_blank" 
-                           class="w-9 h-9 flex items-center justify-center bg-gray-50 text-gray-400 rounded-full active:bg-sky-100 active:text-sky-500 transition-colors border border-gray-100">
-                            <i class="fas fa-location-arrow text-sm"></i>
-                        </a>
-                        <button v-if="isEditMode" @click="deleteItem(item.id)" class="text-red-300 w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50">
-                            <i class="fas fa-trash-alt text-xs"></i>
-                        </button>
-                    </div>
-                </article>
-            </div>
-            <div v-else class="text-center py-10 bg-white rounded-3xl border border-dashed border-gray-200">
-                <p class="text-gray-300 font-bold text-sm">點擊下方按鈕新增行程</p>
-            </div>
-            
-            <button v-if="isEditMode" @click="openAddModal" class="w-full py-4 border-2 border-dashed border-pink-200 bg-pink-50/30 rounded-2xl text-pink-400 text-sm font-bold mt-2 hover:bg-pink-50 transition-colors">
-                <i class="fas fa-plus-circle mr-1"></i> 新增行程到 Day {{ activeDateId.replace('day','') }}
-            </button>
-        </section>
-
-        <section v-if="activeTab === 'shopping'" class="space-y-4">
-            <div class="bg-pink-100 p-4 rounded-2xl flex items-center text-pink-600 shadow-inner">
-                <i class="fas fa-shopping-bag text-2xl mr-3"></i>
-                <div>
-                    <h4 class="font-black text-sm">購物 & 景點清單</h4>
-                    <p class="text-[10px] opacity-70 font-bold">打勾代表已完成</p>
-                </div>
-            </div>
-            <div class="space-y-3">
-                <div v-for="item in shoppingList" :key="item.id" 
-                     class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between transition-all"
-                     :class="item.checked ? 'opacity-50 bg-gray-50 grayscale' : ''">
-                    <div class="flex items-center flex-1 cursor-pointer" @click="toggleCheck(item)">
-                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center mr-3 transition-colors"
-                             :class="item.checked ? 'bg-pink-500 border-pink-500' : 'border-gray-200 bg-white'">
-                            <i v-if="item.checked" class="fas fa-check text-white text-[10px]"></i>
+                        <div class="flex flex-col items-end space-y-2">
+                            <a :href="'https://www.google.com/maps/search/?api=1&query=' + item.name + ' ' + (item.region || '')" target="_blank" 
+                               class="w-10 h-10 flex items-center justify-center bg-gray-50 text-gray-400 rounded-full active:bg-gray-200">
+                                <i class="fas fa-location-arrow"></i>
+                            </a>
+                            <button v-if="isEditMode" @click="deleteItem(item.id)" class="text-red-300 px-2"><i class="fas fa-trash-alt text-xs"></i></button>
                         </div>
-                        <div>
-                            <h5 class="font-bold text-gray-800 text-sm" :class="item.checked ? 'line-through decoration-gray-400' : ''">{{ item.name }}</h5>
-                            <p class="text-[10px] text-gray-400 font-bold mt-0.5">{{ item.region }}</p>
-                        </div>
-                    </div>
-                    <button v-if="isEditMode" @click="deleteShoppingItem(item.id)" class="text-red-300 p-2 active:scale-90"><i class="fas fa-trash text-xs"></i></button>
+                    </article>
                 </div>
+                <div v-else class="text-center py-20 bg-gray-50 rounded-[3rem] border-2 border-dashed border-gray-100"><p class="text-gray-400 font-bold text-sm">今日尚無規劃</p></div>
             </div>
-            <button v-if="isEditMode" @click="addShoppingItem" class="w-full py-3 bg-pink-500 text-white rounded-xl font-bold text-sm shadow-md shadow-pink-200 active:scale-95 transition-transform">
-                <i class="fas fa-plus mr-1"></i> 新增項目
-            </button>
         </section>
 
-        <section v-if="activeTab === 'food'" class="space-y-4">
-             <div class="bg-orange-100 p-4 rounded-2xl flex items-center text-orange-600 shadow-inner">
-                <i class="fas fa-utensils text-2xl mr-3"></i>
-                <div>
-                    <h4 class="font-black text-sm">美食口袋名單</h4>
-                    <p class="text-[10px] opacity-70 font-bold">福岡長崎必吃</p>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 gap-3">
-                <div v-for="item in foodList" :key="item.id" class="bg-white p-4 rounded-2xl border-l-4 border-orange-300 shadow-sm relative hover:shadow-md transition-shadow">
-                    <div class="flex justify-between items-start mb-1">
-                        <span class="bg-orange-50 text-orange-500 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider">{{ item.region }}</span>
-                        <a :href="'https://www.google.com/maps/search/?api=1&query=' + item.name + ' ' + item.region" target="_blank" class="text-gray-300 hover:text-orange-400"><i class="fas fa-location-arrow text-xs"></i></a>
-                    </div>
-                    <h5 class="font-bold text-gray-800 text-base">{{ item.name }}</h5>
-                    <p class="text-xs text-gray-400 mt-1 font-medium">{{ item.note }}</p>
-                    <button v-if="isEditMode" @click="deleteFoodItem(item.id)" class="absolute bottom-2 right-2 text-red-200 hover:text-red-400 p-2"><i class="fas fa-trash text-xs"></i></button>
-                </div>
-            </div>
-             <button v-if="isEditMode" @click="addFoodItem" class="w-full py-3 bg-orange-400 text-white rounded-xl font-bold text-sm shadow-md shadow-orange-200 active:scale-95 transition-transform">
-                 <i class="fas fa-plus mr-1"></i> 新增餐廳
-             </button>
-        </section>
-
-        <section v-if="activeTab === 'expense'" class="space-y-4">
-             <div class="bg-sky-600 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
-                <div class="relative z-10">
-                    <p class="text-xs font-bold opacity-70 uppercase tracking-widest mb-1">Total Expense</p>
-                    <p class="text-4xl font-black mb-2">¥ {{ totalExpenseJPY.toLocaleString() }}</p>
-                    <p class="text-sm opacity-90 font-bold bg-white/20 inline-block px-2 py-1 rounded backdrop-blur-md">
-                        ≈ TWD {{ (totalExpenseJPY * exchangeRate).toFixed(0).toLocaleString() }}
-                    </p>
-                </div>
-                <i class="fas fa-coins absolute -right-4 -bottom-4 text-9xl opacity-10 transform -rotate-12"></i>
-            </div>
-            
-            <div class="space-y-2">
-                <div v-for="exp in expenses" :key="exp.id" class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center">
-                    <div>
-                        <h4 class="font-bold text-gray-800 text-sm">{{ exp.item }}</h4>
-                        <p class="text-[10px] text-gray-400 font-bold bg-gray-50 inline-block px-1.5 rounded mt-1">{{ exp.date }}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-black font-mono text-base text-sky-600">¥{{ exp.amount }}</p>
-                         <button v-if="isEditMode" @click="deleteExpense(exp.id)" class="text-red-300 text-[10px] font-bold mt-1">刪除</button>
-                    </div>
-                </div>
-                <button @click="addExpense" class="w-full py-3 bg-sky-500 text-white rounded-xl font-bold text-sm shadow-md shadow-sky-200 mt-4 active:scale-95 transition-transform">
-                    <i class="fas fa-plus mr-1"></i> 記一筆
+        <section v-if="activeTab === 'shopping'" class="scale-in-center space-y-4">
+            <div v-if="isEditMode" class="mb-4">
+                <button @click="addShoppingItem" class="w-full py-4 border-2 border-dashed border-pink-200 rounded-3xl text-pink-500 text-sm font-bold bg-pink-50/30">
+                    <i class="fas fa-cart-plus mr-2"></i>新增項目
                 </button>
             </div>
+            <div v-for="item in shoppingList" :key="item.id" 
+                 @click="toggleCheck(item)"
+                 class="p-5 bg-white border border-gray-100 rounded-[1.8rem] flex justify-between items-center shadow-sm"
+                 :class="item.checked ? 'opacity-50 grayscale' : ''">
+                <div class="flex-1">
+                    <h3 class="font-bold text-gray-800 text-lg" :class="item.checked ? 'line-through' : ''">{{ item.name }}</h3>
+                    <div class="flex items-center mt-1 space-x-2">
+                        <span class="bg-gray-100 text-gray-500 text-[9px] px-2 py-0.5 rounded-md font-bold uppercase">{{ item.region }}</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <i :class="item.checked ? 'fas fa-check-circle text-green-500' : 'far fa-circle text-gray-300'" class="text-2xl"></i>
+                    <button v-if="isEditMode" @click.stop="deleteShoppingItem(item.id)" class="text-red-300 p-2"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
         </section>
-    </main>
-    
-    <div v-if="showAddModal" class="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-sm rounded-[2rem] p-6 shadow-2xl transform scale-100 transition-all">
-            <h3 class="font-black text-xl mb-4 text-gray-800 flex items-center">
-                <span class="bg-pink-100 text-pink-500 w-8 h-8 rounded-full flex items-center justify-center mr-2 text-sm"><i class="fas fa-pen"></i></span>
-                新增行程
-            </h3>
-            <div class="space-y-4">
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">時間</label>
-                    <input v-model="newItem.time" type="time" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 font-bold text-base outline-none focus:border-pink-400 focus:bg-white transition-colors">
+
+        <section v-if="activeTab === 'food'" class="scale-in-center space-y-4">
+            <div v-if="isEditMode" class="mb-4">
+                <button @click="addFoodItem" class="w-full py-4 border-2 border-dashed border-orange-200 rounded-3xl text-orange-500 text-sm font-bold bg-orange-50/30">
+                    <i class="fas fa-utensils mr-2"></i>新增餐廳
+                </button>
+            </div>
+            <div v-for="item in foodList" :key="item.id" 
+                 class="p-5 bg-white border border-gray-100 rounded-[1.8rem] flex justify-between items-center shadow-sm border-l-[6px] border-orange-400">
+                <div class="flex-1">
+                    <h3 class="font-bold text-gray-800 text-lg">{{ item.name }}</h3>
+                    <div class="flex items-center mt-1 space-x-2">
+                        <span class="bg-orange-50 text-orange-600 text-[9px] px-2 py-0.5 rounded-md font-black uppercase">{{ item.region }}</span>
+                        <p class="text-xs text-gray-400">{{ item.note }}</p>
+                    </div>
                 </div>
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">名稱</label>
-                    <input v-model="newItem.name" placeholder="行程名稱" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 font-bold text-base outline-none focus:border-pink-400 focus:bg-white transition-colors">
+                <div class="flex items-center space-x-2">
+                    <a :href="'https://www.google.com/maps/search/?api=1&query=' + item.name + ' ' + item.region" target="_blank" class="w-10 h-10 flex items-center justify-center bg-gray-50 text-gray-400 rounded-full">
+                        <i class="fas fa-location-arrow"></i>
+                    </a>
+                    <button v-if="isEditMode" @click="deleteFoodItem(item.id)" class="text-red-300 p-2"><i class="fas fa-trash"></i></button>
                 </div>
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">類別</label>
-                    <div class="flex space-x-2 mt-1">
-                        <button v-for="cat in ['景點','美食','交通','購物']" @click="newItem.category = cat" 
-                                :class="newItem.category === cat ? 'bg-pink-500 text-white shadow-md shadow-pink-200' : 'bg-gray-100 text-gray-500'"
-                                class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all">{{ cat }}</button>
+            </div>
+        </section>
+
+        <section v-if="activeTab === 'expense'" class="scale-in-center space-y-6">
+            <div class="bg-gray-900 rounded-[2rem] p-6 text-white shadow-xl">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Total Expense</p>
+                <div class="flex justify-between items-end">
+                    <div>
+                        <p class="text-3xl font-black">¥ {{ totalExpenseJPY.toLocaleString() }}</p>
+                        <p class="text-sm text-gray-400 mt-1">≈ TWD {{ (totalExpenseJPY * exchangeRate).toFixed(0) }}</p>
                     </div>
                 </div>
             </div>
-            <div class="flex space-x-3 mt-8">
-                 <button @click="showAddModal = false" class="flex-1 py-3 bg-gray-100 text-gray-500 rounded-xl font-bold text-sm hover:bg-gray-200">取消</button>
-                <button @click="saveNewItem" class="flex-[2] py-3 bg-pink-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-pink-200 active:scale-95 transition-transform">儲存並同步</button>
+            <div v-if="isEditMode">
+                <button @click="addExpense" class="w-full py-4 border-2 border-dashed border-emerald-200 rounded-3xl text-emerald-600 text-sm font-bold bg-emerald-50/30">
+                    <i class="fas fa-plus mr-2"></i>記一筆
+                </button>
             </div>
+            <div v-if="expenses.length > 0" class="space-y-3">
+                <div v-for="exp in expenses" :key="exp.id" class="bg-white border border-gray-100 rounded-[1.5rem] p-4 flex justify-between items-center shadow-sm">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs text-white bg-blue-500">
+                            ¥
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-800 text-sm">{{ exp.item }}</h4>
+                            <p class="text-[10px] text-gray-400">{{ exp.date }}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-black text-lg text-gray-800">¥{{ exp.amount }}</p>
+                        <button v-if="isEditMode" @click="deleteExpense(exp.id)" class="text-red-300 text-[10px] mt-1">刪除</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div v-if="showAddModal" class="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div @click="showAddModal = false" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div class="relative bg-white w-full max-w-sm rounded-t-[3rem] sm:rounded-[3rem] p-8 scale-in-center shadow-2xl">
+            <h2 class="text-2xl font-black mb-8">新增行程</h2>
+            <div class="space-y-6">
+                <input v-model="newItem.name" placeholder="名稱..." class="w-full border-b-2 border-gray-100 p-2.5 text-lg font-bold outline-none focus:border-blue-600">
+                <div class="grid grid-cols-2 gap-6">
+                    <input v-model="newItem.time" type="time" class="w-full border-b-2 border-gray-100 p-2.5 outline-none font-bold">
+                    <select v-model="newItem.category" class="w-full border-b-2 border-gray-100 p-2.5 outline-none font-bold bg-white">
+                        <option>景點</option><option>美食</option><option>交通</option><option>購物</option>
+                    </select>
+                </div>
+            </div>
+            <button @click="saveNewItem" class="w-full mt-10 py-4 bg-blue-600 text-white rounded-2xl font-black shadow-lg">儲存</button>
         </div>
     </div>
+
 </div>
 
 <script>
+    // ==========================================
+    // 1. Firebase Configuration (已填入)
+    // ==========================================
     const firebaseConfig = {
         apiKey: "AIzaSyCGprnuwAqCKwt1GoCrbAevGdg_hZlZFdg",
         authDomain: "kyushu-7ee56.firebaseapp.com",
@@ -475,32 +365,25 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.database();
 
-    const { createApp, ref, computed, onMounted, nextTick } = Vue;
+    const { createApp, ref, computed, onMounted } = Vue;
 
     createApp({
         setup() {
             // UI State
             const isMenuOpen = ref(false);
-            const activeTab = ref('itinerary');
+            const activeTab = ref('itinerary'); // Default to itinerary
             const isEditMode = ref(false);
             const activeDateId = ref('day1');
             const showAddModal = ref(false);
             const dbConnected = ref(false);
             const loadingRate = ref(false);
 
-            // Weather & Visuals
-            const weather = ref({ 
-                temp: '--', 
-                desc: '讀取中...', 
-                icon: 'fas fa-cloud', 
-                min: '-', 
-                max: '-', 
-                isDay: 1 
-            });
-            const weatherState = ref('cloudy'); // 'clear', 'cloudy', 'rain', 'night'
+            // API Data
+            const weather = ref({ temp: '--', desc: '載入中', icon: 'fas fa-cloud' });
             const exchangeRate = ref(0.22);
 
-            // Data State
+            // App Data
+            const notes = ref([]);
             const itineraryData = ref([]);
             const shoppingList = ref([]);
             const foodList = ref([]);
@@ -526,192 +409,108 @@
                 { id: 2, name: 'Nishitetsu Hotel Croom Hakata', checkIn: '04/11', checkOut: '04/15' }
             ]);
 
-            // ==========================================
-            // API 1: 天氣 (JMA via Open-Meteo)
-            // ==========================================
+            // API Logic
             const fetchWeather = async () => {
                 try {
-                    // Open-Meteo 取得福岡即時天氣與每日高低溫
-                    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=33.59&longitude=130.40&current_weather=true&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FTokyo');
+                    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=33.59&longitude=130.40&current_weather=true&timezone=Asia%2FTokyo');
                     const data = await res.json();
-                    
                     if(data.current_weather) {
-                        const cur = data.current_weather;
-                        weather.value.temp = cur.temperature;
-                        weather.value.isDay = cur.is_day;
-                        const code = cur.weathercode;
-
-                        // 設置高低溫
-                        if(data.daily) {
-                            weather.value.max = data.daily.temperature_2m_max[0];
-                            weather.value.min = data.daily.temperature_2m_min[0];
-                        }
-
-                        // 判斷天氣狀態以切換動畫
+                        weather.value.temp = data.current_weather.temperature;
+                        const code = data.current_weather.weathercode;
                         weather.value.desc = getWeatherDesc(code);
                         weather.value.icon = getWeatherIcon(code);
-                        setWeatherState(code, cur.is_day);
                     }
-                } catch (e) { console.error("Weather Error", e); }
+                } catch(e) { console.error(e); }
             };
+            const getWeatherIcon = (c) => c===0?'fas fa-sun text-yellow-300':(c<3?'fas fa-cloud-sun':'fas fa-cloud');
+            const getWeatherDesc = (c) => c===0?'晴朗':(c<3?'多雲':'陰雨');
 
-            const setWeatherState = (code, isDay) => {
-                // 夜晚優先
-                if (isDay === 0) {
-                    weatherState.value = 'night';
-                    return;
-                }
-                // 下雨
-                if (code >= 51) {
-                    weatherState.value = 'rain';
-                    // 產生雨滴 DOM
-                    nextTick(() => createRain());
-                    return;
-                }
-                // 多雲
-                if (code >= 1 && code <= 48) {
-                    weatherState.value = 'cloudy';
-                    return;
-                }
-                // 晴朗
-                weatherState.value = 'clear';
-            };
-
-            const createRain = () => {
-                const container = document.getElementById('rain-container');
-                if(!container) return;
-                container.innerHTML = '';
-                for(let i=0; i<20; i++) {
-                    const drop = document.createElement('div');
-                    drop.className = 'rain-drop';
-                    drop.style.left = Math.random() * 100 + '%';
-                    drop.style.animationDuration = (0.5 + Math.random() * 0.5) + 's';
-                    drop.style.animationDelay = Math.random() + 's';
-                    container.appendChild(drop);
-                }
-            };
-
-            const getWeatherIcon = (code) => {
-                if (code === 0) return 'fas fa-sun';
-                if (code <= 3) return 'fas fa-cloud-sun';
-                if (code <= 48) return 'fas fa-smog';
-                if (code <= 67) return 'fas fa-cloud-showers-heavy';
-                return 'fas fa-cloud';
-            };
-            const getWeatherDesc = (code) => {
-                if (code === 0) return '晴朗';
-                if (code <= 3) return '多雲';
-                if (code <= 48) return '有霧';
-                if (code <= 67) return '有雨';
-                return '陰天';
-            };
-
-            const weatherClass = computed(() => {
-                switch(weatherState.value) {
-                    case 'rain': return 'weather-bg-rain';
-                    case 'night': return 'weather-bg-night';
-                    case 'cloudy': return 'weather-bg-cloudy';
-                    default: return 'weather-bg-clear';
-                }
-            });
-
-            // ==========================================
-            // API 2: 匯率
-            // ==========================================
             const fetchRate = async () => {
                 loadingRate.value = true;
                 try {
                     const res = await fetch('https://api.frankfurter.app/latest?from=JPY&to=TWD');
                     const data = await res.json();
-                    if(data.rates && data.rates.TWD) {
-                        exchangeRate.value = data.rates.TWD.toFixed(3);
-                    }
-                } catch (e) { console.error("Rate Error", e); }
+                    if(data.rates.TWD) exchangeRate.value = data.rates.TWD.toFixed(3);
+                } catch(e) {}
                 loadingRate.value = false;
             };
 
-            // ==========================================
             // Firebase Logic
-            // ==========================================
             onMounted(() => {
-                fetchWeather();
-                fetchRate();
-                const tripRef = db.ref('trips/kyushu2026');
-                tripRef.on('value', (snapshot) => {
+                fetchWeather(); fetchRate();
+                db.ref('trips/kyushu2026').on('value', (snap) => {
                     dbConnected.value = true;
-                    const data = snapshot.val();
-                    if (data) {
-                        if (data.itinerary) itineraryData.value = data.itinerary;
-                        if (data.shopping) shoppingList.value = data.shopping;
-                        if (data.food) foodList.value = data.food;
-                        if (data.expenses) expenses.value = data.expenses;
+                    const d = snap.val();
+                    if(d) {
+                        if(d.itinerary) itineraryData.value = d.itinerary;
+                        if(d.shopping) shoppingList.value = d.shopping;
+                        if(d.food) foodList.value = d.food;
+                        if(d.expenses) expenses.value = d.expenses;
+                        if(d.notes) notes.value = d.notes;
                     } else {
-                        // Init Data
+                        // 初始化資料
                         const initData = {
                             itinerary: [
-                                { id: 100, dateId: 'day1', time: '07:10', name: 'IT246 起飛', category: '交通', notes: 'TPE 往 佐賀', region: 'Taoyuan' },
-                                { id: 101, dateId: 'day1', time: '11:44', name: '佐賀機場巴士', category: '交通', notes: '往佐賀站', region: 'Saga' },
-                                { id: 103, dateId: 'day1', time: '12:56', name: '西九州新幹線', category: '交通', notes: '往長崎', region: 'Nagasaki' },
-                                { id: 107, dateId: 'day1', time: '19:30', name: '稻佐山夜景', category: '景點', notes: '纜車', region: 'Nagasaki' },
-                                { id: 201, dateId: 'day2', time: '09:00', name: '軍艦島', category: '景點', notes: '需預約', region: 'Nagasaki' },
-                                { id: 602, dateId: 'day6', time: '12:00', name: 'LaLaport 福岡', category: '購物', notes: '鋼彈', region: 'Fukuoka' },
-                                { id: 701, dateId: 'day7', time: '09:00', name: '前往福岡機場', category: '交通', notes: '搭乘地鐵/計程車', region: 'Fukuoka' },
-                                { id: 702, dateId: 'day7', time: '11:00', name: 'CI 0111 起飛', category: '交通', notes: 'FUK T1 -> TPE T2', region: 'Fukuoka' }
+                                { id: 100, dateId: 'day1', time: '07:10', name: 'IT246 起飛', category: '交通', notes: 'TPE 往 佐賀' },
+                                { id: 101, dateId: 'day1', time: '11:44', name: '佐賀機場巴士', category: '交通', notes: '往佐賀站' },
+                                { id: 107, dateId: 'day1', time: '19:30', name: '稻佐山夜景', category: '景點', notes: '纜車' },
+                                { id: 201, dateId: 'day2', time: '09:00', name: '軍艦島', category: '景點', notes: '需預約' },
+                                { id: 702, dateId: 'day7', time: '11:00', name: 'CI 0111 起飛', category: '交通', notes: 'FUK T1 -> TPE' }
                             ],
-                            shopping: [
-                                { id: 1, name: '長崎蛋糕', region: '長崎', checked: false },
-                                { id: 2, name: '唐吉訶德', region: '福岡', checked: false }
-                            ],
-                            food: [
-                                { id: 1, name: '拉麵柊', region: '長崎', note: '茄子拉麵' },
-                                { id: 2, name: '前田屋牛雜鍋', region: '福岡', note: '必吃' }
-                            ],
-                            expenses: []
+                            shopping: [{ id: 1, name: '長崎蛋糕', region: '長崎', checked: false }],
+                            food: [{ id: 1, name: '拉麵柊', region: '長崎', note: '茄子拉麵' }],
+                            notes: [{ id: 1, title: '重要', content: '護照、VJW截圖要帶' }]
                         };
                         db.ref('trips/kyushu2026').set(initData);
                     }
                 });
             });
 
-            const updateRemote = (key, data) => { db.ref(`trips/kyushu2026/${key}`).set(JSON.parse(JSON.stringify(data))); };
+            const updateRemote = (key, data) => db.ref(`trips/kyushu2026/${key}`).set(JSON.parse(JSON.stringify(data)));
 
-            // CRUD Logic
+            // Actions
             const newItem = ref({ time: '12:00', name: '', category: '景點' });
-            const openAddModal = () => { showAddModal.value = true; };
+            const openAddModal = () => showAddModal.value = true;
             const saveNewItem = () => {
                 if(!newItem.value.name) return;
                 const list = [...itineraryData.value, { ...newItem.value, id: Date.now(), dateId: activeDateId.value, notes: '' }];
                 itineraryData.value = list; updateRemote('itinerary', list); showAddModal.value = false; newItem.value.name = '';
             };
-            const deleteItem = (id) => { if(confirm('確定刪除?')) { const list = itineraryData.value.filter(i => i.id !== id); itineraryData.value = list; updateRemote('itinerary', list); }};
+            const deleteItem = (id) => { if(confirm('刪除?')) { const list = itineraryData.value.filter(i=>i.id!==id); itineraryData.value=list; updateRemote('itinerary', list); }};
             const toggleCheck = (item) => { item.checked = !item.checked; updateRemote('shopping', shoppingList.value); };
-            const addShoppingItem = () => { const name = prompt("輸入名稱:"); if(name) { shoppingList.value.push({id:Date.now(), name, region:'-', checked:false}); updateRemote('shopping', shoppingList.value); }};
+            const addShoppingItem = () => { const n = prompt('名稱'); if(n) { shoppingList.value.push({id:Date.now(), name:n, region:'-', checked:false}); updateRemote('shopping', shoppingList.value); }};
             const deleteShoppingItem = (id) => { shoppingList.value = shoppingList.value.filter(i=>i.id!==id); updateRemote('shopping', shoppingList.value); };
-            const addFoodItem = () => { const name = prompt("餐廳名稱:"); if(name) { foodList.value.push({id:Date.now(), name, region:'-', note:''}); updateRemote('food', foodList.value); }};
+            const addFoodItem = () => { const n = prompt('餐廳'); if(n) { foodList.value.push({id:Date.now(), name:n, region:'-', note:''}); updateRemote('food', foodList.value); }};
             const deleteFoodItem = (id) => { foodList.value = foodList.value.filter(i=>i.id!==id); updateRemote('food', foodList.value); };
-            const addExpense = () => { const item = prompt("項目:"); const amt = prompt("金額 (JPY):"); if(item && amt) { expenses.value.push({id:Date.now(), item, amount:parseInt(amt), date: new Date().getMonth()+1+'/'+new Date().getDate()}); updateRemote('expenses', expenses.value); }};
-            const deleteExpense = (id) => { if(confirm('刪除?')) { expenses.value = expenses.value.filter(i=>i.id!==id); updateRemote('expenses', expenses.value); }};
+            const addExpense = () => { const i=prompt('項目'), a=prompt('金額'); if(i&&a) { expenses.value.push({id:Date.now(), item:i, amount:parseInt(a), date: 'Today'}); updateRemote('expenses', expenses.value); }};
+            const deleteExpense = (id) => { expenses.value = expenses.value.filter(i=>i.id!==id); updateRemote('expenses', expenses.value); };
+            
+            // Note Actions
+            const addNote = () => { const t=prompt('標題'), c=prompt('內容'); if(t&&c) { notes.value.push({id:Date.now(), title:t, content:c}); updateRemote('notes', notes.value); }};
+            const deleteNote = (id) => { if(confirm('刪除筆記?')) { notes.value = notes.value.filter(i=>i.id!==id); updateRemote('notes', notes.value); }};
 
-            // View Helpers
+            // Helpers
             const switchTab = (id) => { activeTab.value = id; isMenuOpen.value = false; };
             const activeMenuName = computed(() => menus.find(m => m.id === activeTab.value)?.name);
             const currentItinerary = computed(() => itineraryData.value.filter(i => i.dateId === activeDateId.value).sort((a,b) => a.time.localeCompare(b.time)));
             const totalExpenseJPY = computed(() => expenses.value.reduce((s,i) => s + i.amount, 0));
             const formatDate = (s) => { const d = new Date(s); return `${d.getMonth()+1}/${d.getDate()} ${['日','一','二','三','四','五','六'][d.getDay()]}`; };
+            
             const getStyles = (c) => {
-                if(c==='美食') return {border:'border-orange-400', bg:'bg-orange-400'};
-                if(c==='交通') return {border:'border-sky-400', bg:'bg-sky-400'};
-                if(c==='購物') return {border:'border-pink-400', bg:'bg-pink-400'};
-                return {border:'border-teal-400', bg:'bg-teal-400'};
+                if(c==='美食') return {bg:'bg-orange-500', border:'border-orange-400', shadow:'shadow-orange-100'};
+                if(c==='購物') return {bg:'bg-pink-500', border:'border-pink-400', shadow:'shadow-pink-100'};
+                if(c==='交通') return {bg:'bg-blue-500', border:'border-blue-400', shadow:'shadow-blue-100'};
+                return {bg:'bg-teal-500', border:'border-teal-400', shadow:'shadow-teal-100'};
             };
 
             return {
                 isMenuOpen, activeTab, isEditMode, activeDateId, dbConnected, showAddModal,
-                weather, weatherState, weatherClass, exchangeRate, loadingRate,
-                menus, tripDates, hotels, currentItinerary, shoppingList, foodList, expenses,
+                weather, exchangeRate, loadingRate,
+                menus, tripDates, hotels, currentItinerary, shoppingList, foodList, expenses, notes,
                 totalExpenseJPY, activeMenuName, switchTab, formatDate, getStyles,
                 newItem, openAddModal, saveNewItem, deleteItem,
-                toggleCheck, addShoppingItem, deleteShoppingItem, addFoodItem, deleteFoodItem, addExpense, deleteExpense
+                toggleCheck, addShoppingItem, deleteShoppingItem, addFoodItem, deleteFoodItem, addExpense, deleteExpense,
+                addNote, deleteNote, fetchRate
             };
         }
     }).mount('#app');
