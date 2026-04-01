@@ -84,9 +84,6 @@
                     <div class="text-[9px] uppercase opacity-70 mb-0.5">Day {{ index + 1 }}</div>
                     <div class="tracking-tighter">{{ formatDate(date.fullDate) }}</div>
                 </button>
-                <button v-if="isEditMode" @click="addDay" class="flex-shrink-0 w-10 h-10 border-2 border-dashed border-gray-200 rounded-xl text-gray-400">
-                    <i class="fas fa-plus"></i>
-                </button>
             </div>
         </nav>
     </header>
@@ -106,7 +103,7 @@
                     </li>
                 </ul>
             </div>
-            <div class="text-xs text-gray-300 text-center font-bold pb-8">v2026.Kyushu.Final</div>
+            <div class="text-xs text-gray-300 text-center font-bold pb-8">v2026.Kyushu.PDF.Final</div>
         </aside>
     </transition>
 
@@ -230,7 +227,7 @@
                                 <span :class="getStyles(item.category).bg" class="text-[9px] px-2 py-0.5 rounded text-white font-bold tracking-wide">{{ item.category }}</span>
                             </div>
                             <h3 class="font-bold text-gray-900 text-lg leading-snug">{{ item.name }}</h3>
-                            <p v-if="item.notes" class="text-xs text-gray-500 mt-1">{{ item.notes }}</p>
+                            <p v-if="item.notes" class="text-xs text-gray-500 mt-1 whitespace-pre-wrap">{{ item.notes }}</p>
                         </div>
                         <div class="flex flex-col items-end space-y-2">
                             <a :href="'https://www.google.com/maps/search/?api=1&query=' + item.name + ' ' + (item.region || '')" target="_blank" 
@@ -371,7 +368,7 @@
         setup() {
             // UI State
             const isMenuOpen = ref(false);
-            const activeTab = ref('itinerary'); // Default to itinerary
+            const activeTab = ref('itinerary'); 
             const isEditMode = ref(false);
             const activeDateId = ref('day1');
             const showAddModal = ref(false);
@@ -438,7 +435,8 @@
             // Firebase Logic
             onMounted(() => {
                 fetchWeather(); fetchRate();
-                db.ref('trips/kyushu2026').on('value', (snap) => {
+                // 為了重新載入 PDF 資料，將節點改為 kyushu2026_pdf
+                db.ref('trips/kyushu2026_pdf').on('value', (snap) => {
                     dbConnected.value = true;
                     const d = snap.val();
                     if(d) {
@@ -448,25 +446,81 @@
                         if(d.expenses) expenses.value = d.expenses;
                         if(d.notes) notes.value = d.notes;
                     } else {
-                        // 初始化資料
+                        // 初始化資料 (依照 2026 Kyushu.pdf)
                         const initData = {
                             itinerary: [
-                                { id: 100, dateId: 'day1', time: '07:10', name: 'IT246 起飛', category: '交通', notes: 'TPE 往 佐賀' },
-                                { id: 101, dateId: 'day1', time: '11:44', name: '佐賀機場巴士', category: '交通', notes: '往佐賀站' },
-                                { id: 107, dateId: 'day1', time: '19:30', name: '稻佐山夜景', category: '景點', notes: '纜車' },
-                                { id: 201, dateId: 'day2', time: '09:00', name: '軍艦島', category: '景點', notes: '需預約' },
-                                { id: 702, dateId: 'day7', time: '11:00', name: 'CI 0111 起飛', category: '交通', notes: 'FUK T1 -> TPE' }
+                                { id: 100, dateId: 'day1', time: '07:10', name: 'IT246 起飛', category: '交通', notes: 'TPE T1 往 佐賀', region: 'Taoyuan' },
+                                { id: 101, dateId: 'day1', time: '11:20', name: '佐賀機場線', category: '交通', notes: '11:20 佐賀機場 - 11:50 佐賀站巴士中心', region: 'Saga' },
+                                { id: 102, dateId: 'day1', time: '12:33', name: '接力海鷗 + 西九州新幹線', category: '交通', notes: '12:33 佐賀 - 12:53 武雄溫泉\n12:56 武雄溫泉 - 13:24 長崎 (11號月台)', region: 'Nagasaki' },
+                                { id: 103, dateId: 'day1', time: '14:00', name: '長崎原爆資料館', category: '景點', notes: '原爆資料館 → 中心碑 → 平和公園', region: 'Nagasaki' },
+                                { id: 104, dateId: 'day1', time: '17:30', name: '壽司 若竹丸', category: '美食', notes: 'AMU PLAZA 長崎店', region: 'Nagasaki' },
+                                { id: 105, dateId: 'day1', time: '19:30', name: '稲佐山山頂展望台', category: '景點', notes: '搭乘公車至纜車站\n纜車往返¥1250', region: 'Nagasaki' },
+                                
+                                { id: 201, dateId: 'day2', time: '09:30', name: '新中華街等市區觀光', category: '景點', notes: '新中華街+思案橋橫丁+浜市商店街+眼鏡橋', region: 'Nagasaki' },
+                                { id: 202, dateId: 'day2', time: '11:30', name: '吉宗 本店', category: '美食', notes: '午餐 (11:00~19:30)', region: 'Nagasaki' },
+                                { id: 203, dateId: 'day2', time: '13:20', name: '軍艦島', category: '景點', notes: '10:30~13:10 報到\n13:20~16:15 航程', region: 'Nagasaki' },
+                                { id: 204, dateId: 'day2', time: '16:30', name: '哥拉巴園周邊', category: '景點', notes: '相生地獄坂→天空步道→大浦展望公園→祈念坂→大浦天主堂', region: 'Nagasaki' },
+                                { id: 205, dateId: 'day2', time: '18:30', name: '拉麵柊 本店', category: '美食', notes: '晚餐', region: 'Nagasaki' },
+                                
+                                { id: 301, dateId: 'day3', time: '09:30', name: '珈琲 富士男', category: '美食', notes: '早餐', region: 'Nagasaki' },
+                                { id: 302, dateId: 'day3', time: '11:45', name: '西九州新幹線 + 接力海鷗', category: '交通', notes: '11:45 長崎 - 12:13 武雄溫泉\n12:16 武雄溫泉 - 13:14 博多 (10號月台)', region: 'Fukuoka' },
+                                { id: 303, dateId: 'day3', time: '13:30', name: '黒毛和牛 博多牛まぶし 武蔵', category: '美食', notes: '午餐', region: 'Fukuoka' },
+                                { id: 304, dateId: 'day3', time: '15:30', name: '大濠公園 + 福岡城', category: '景點', notes: 'FUK COFFEE Parks', region: 'Fukuoka' },
+                                { id: 305, dateId: 'day3', time: '18:00', name: '博多運河城', category: '購物', notes: '購物', region: 'Fukuoka' },
+                                { id: 306, dateId: 'day3', time: '19:30', name: 'Shin-Shin 博多拉麵', category: '美食', notes: 'KITTE博多店', region: 'Fukuoka' },
+                                { id: 307, dateId: 'day3', time: '20:30', name: 'Yodobashi & 唐吉訶德', category: '購物', notes: '採買', region: 'Fukuoka' },
+                                
+                                { id: 401, dateId: 'day4', time: '09:00', name: 'Fuk Coffee / NOOICE', category: '美食', notes: '早餐', region: 'Fukuoka' },
+                                { id: 402, dateId: 'day4', time: '10:30', name: '櫛田神社', category: '景點', notes: '博多總鎮守', region: 'Fukuoka' },
+                                { id: 403, dateId: 'day4', time: '12:00', name: '葫蘆壽司', category: '美食', notes: '僅現金支付 (11:30-14:00)', region: 'Fukuoka' },
+                                { id: 404, dateId: 'day4', time: '14:00', name: '天神 City walk', category: '購物', notes: '市區逛街', region: 'Fukuoka' },
+                                { id: 405, dateId: 'day4', time: '19:00', name: '焼肉ベンジャミン', category: '美食', notes: '訂位: 19:00', region: 'Fukuoka' },
+                                
+                                { id: 501, dateId: 'day5', time: '09:00', name: '出發前往門司港', category: '交通', notes: '新幹線 博多-小倉\n鹿兒島本線 小倉-門司港', region: 'Kitakyushu' },
+                                { id: 502, dateId: 'day5', time: '10:00', name: '門司港', category: '景點', notes: '懷舊區', region: 'Kitakyushu' },
+                                { id: 503, dateId: 'day5', time: '12:00', name: 'Princess Phi Phi / 伽哩本舖', category: '美食', notes: '燒咖哩', region: 'Kitakyushu' },
+                                { id: 504, dateId: 'day5', time: '14:00', name: '小倉城 + 旦過市場', category: '景點', notes: '鹿兒島本線 門司港-小倉', region: 'Kitakyushu' },
+                                { id: 505, dateId: 'day5', time: '16:30', name: '皿倉山', category: '景點', notes: '鹿兒島本線 小倉-八幡', region: 'Kitakyushu' },
+                                { id: 506, dateId: 'day5', time: '20:00', name: '博多牛雜鍋前田屋', category: '美食', notes: '中洲川端店', region: 'Fukuoka' },
+                                
+                                { id: 601, dateId: 'day6', time: '09:00', name: '前往柳川', category: '交通', notes: '西鐵 天神-柳川', region: 'Fukuoka' },
+                                { id: 602, dateId: 'day6', time: '10:00', name: '柳川遊船', category: '景點', notes: '', region: 'Fukuoka' },
+                                { id: 603, dateId: 'day6', time: '12:00', name: '若松屋', category: '美食', notes: '鰻魚飯', region: 'Fukuoka' },
+                                { id: 604, dateId: 'day6', time: '14:00', name: '太宰府 & 九州國立博物館', category: '景點', notes: '西鐵 柳川-二日市-太宰府', region: 'Fukuoka' },
+                                { id: 605, dateId: 'day6', time: '18:30', name: '博多味処水炊き いろは', category: '美食', notes: '本店', region: 'Fukuoka' },
+                                
+                                { id: 701, dateId: 'day7', time: '09:00', name: '前往福岡機場', category: '交通', notes: '搭乘地鐵/計程車', region: 'Fukuoka' },
+                                { id: 702, dateId: 'day7', time: '11:00', name: 'CI 0111 起飛', category: '交通', notes: 'FUK T1 -> TPE T2', region: 'Fukuoka' }
                             ],
-                            shopping: [{ id: 1, name: '長崎蛋糕', region: '長崎', checked: false }],
-                            food: [{ id: 1, name: '拉麵柊', region: '長崎', note: '茄子拉麵' }],
+                            shopping: [
+                                { id: 1, name: '長崎觀光設施折扣卡', region: '長崎', checked: false },
+                                { id: 2, name: '博多運河城', region: '福岡', checked: false },
+                                { id: 3, name: 'Yodobashi 友都八喜', region: '福岡', checked: false },
+                                { id: 4, name: '唐吉訶德 中洲店', region: '福岡', checked: false },
+                                { id: 5, name: '天神 City walk', region: '福岡', checked: false }
+                            ],
+                            food: [
+                                { id: 1, name: '壽司 若竹丸', region: '長崎', note: 'AMU PLAZA' },
+                                { id: 2, name: '吉宗 本店', region: '長崎', note: '茶碗蒸' },
+                                { id: 3, name: '拉麵柊', region: '長崎', note: '銅座本店' },
+                                { id: 4, name: '珈琲 富士男', region: '長崎', note: '早餐' },
+                                { id: 5, name: '黒毛和牛 博多牛まぶし 武蔵', region: '福岡', note: '和牛' },
+                                { id: 6, name: 'Shin-Shin 博多拉麵', region: '福岡', note: 'KITTE博多店' },
+                                { id: 7, name: '葫蘆壽司', region: '福岡', note: '天神' },
+                                { id: 8, name: '焼肉ベンジャミン', region: '福岡', note: '19:00 訂位' },
+                                { id: 9, name: 'Princess Phi Phi / 伽哩本舖', region: '門司港', note: '燒咖哩' },
+                                { id: 10, name: '博多牛雜鍋前田屋', region: '福岡', note: '中洲川端店' },
+                                { id: 11, name: '若松屋', region: '柳川', note: '鰻魚飯' },
+                                { id: 12, name: '水炊き いろは', region: '福岡', note: '本店' }
+                            ],
                             notes: [{ id: 1, title: '重要', content: '護照、VJW截圖要帶' }]
                         };
-                        db.ref('trips/kyushu2026').set(initData);
+                        db.ref('trips/kyushu2026_pdf').set(initData);
                     }
                 });
             });
 
-            const updateRemote = (key, data) => db.ref(`trips/kyushu2026/${key}`).set(JSON.parse(JSON.stringify(data)));
+            const updateRemote = (key, data) => db.ref(`trips/kyushu2026_pdf/${key}`).set(JSON.parse(JSON.stringify(data)));
 
             // Actions
             const newItem = ref({ time: '12:00', name: '', category: '景點' });
